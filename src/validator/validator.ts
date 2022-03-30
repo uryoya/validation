@@ -1,15 +1,15 @@
 import { Validity, Valid, Invalid } from 'validator/validity';
-import { InterfaceConstraint } from 'validator/constraint';
+import { InterfaceConstraint, PropertyConstraint } from 'validator/constraint';
 
-export class Validator<T extends Object> {
+export class Validator<T> {
   constructor(readonly constraint: InterfaceConstraint<T>) {}
 
   validate(value: T): Validity<T> {
-    const errors = Object.keys(this.constraint)
+    const errors = Object.keys(value)
       .flatMap((key) => {
-        const constraint = Reflect.get(this.constraint, key);
-        const property = Reflect.get(value, key);
-        const validity: Validity<T> = constraint(property, key);
+        const constraint = Reflect.get(this.constraint, key) as PropertyConstraint<unknown>; // かなり苦し紛れ
+        const property = Reflect.get(value as Record<string, unknown>, key) as unknown;
+        const validity = constraint(property, key);
         if (validity.isInvalid()) {
           return validity.errors;
         }
